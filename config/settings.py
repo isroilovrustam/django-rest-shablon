@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # packages
     'drf_yasg',
     'rest_framework',
+    'rest_framework_simplejwt',
 
     # local apps
     'user',
