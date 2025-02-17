@@ -5,6 +5,7 @@ from django.core.validators import FileExtensionValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import models
 from datetime import datetime, timedelta
+from django.utils import timezone
 from shared.models import BaseModel
 
 ORDINARY_USER, MANAGER, ADMIN = ("ordinary_user", 'manager', 'admin')
@@ -113,7 +114,7 @@ class UserConfirmation(BaseModel):
 
     def save(self, *args, **kwargs):
         if self.verify_type == VIA_EMAIL:  # 30-mart 11-33 + 5minutes
-            self.expiration_time = datetime.now() + timedelta(minutes=EMAIL_EXPIRE)
+            self.expiration_time = timezone.now() + timedelta(minutes=EMAIL_EXPIRE)
         else:
-            self.expiration_time = datetime.now() + timedelta(minutes=PHONE_EXPIRE)
+            self.expiration_time = timezone.now() + timedelta(minutes=PHONE_EXPIRE)
         super(UserConfirmation, self).save(*args, **kwargs)

@@ -1,6 +1,6 @@
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.urls import re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -28,6 +28,7 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     path('admin/', admin.site.urls),
+    path('api/v1/users/', include('user.urls'))
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
