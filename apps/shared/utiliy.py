@@ -2,30 +2,36 @@ import re
 import threading
 from django.core.mail import EmailMessage
 import phonenumbers
-# from decouple import config
+from decouple import config
+from phonenumbers import NumberParseException
+from twilio.rest import Client
 from django.template.loader import render_to_string
 from rest_framework.exceptions import ValidationError
 
 email_regex = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b")
-phone_regex = re.compile(r"(\+[0-9]+\s*)?(\([0-9]+\))?[\s0-9\-]+[0-9]+")
 
+
+# phone_regex = re.compile(r"(\+[0-9]+\s*)?(\([0-9]+\))?[\s0-9\-]+[0-9]+")
 
 def check_email_or_phone(email_or_phone):
-    phone_number = phonenumbers.parse(email_or_phone)
+    # Avval email ekanligini tekshiramiz
     if re.fullmatch(email_regex, email_or_phone):
-        email_or_phone = "email"
+        return "email"
 
-    elif phonenumbers.is_valid_number(phone_number):
-        email_or_phone = 'phone'
+    # Telefon raqam ekanligini tekshiramiz
+    try:
+        phone_number = phonenumbers.parse(email_or_phone, None)  # Default country code yo'q
+        if phonenumbers.is_valid_number(phone_number):
+            return "phone"
+    except NumberParseException:
+        pass  # Xato bo'lsa, davom etamiz
 
-    else:
-        data = {
-            "success": False,
-            "message": "Email yoki telefon raqamingiz notogri"
-        }
-        raise ValidationError(data)
-
-    return email_or_phone
+    # Agar email ham, telefon ham bo‘lmasa, xatolik chiqaramiz
+    data = {
+        "success": False,
+        "message": "Email yoki telefon raqamingiz noto‘g‘ri"
+    }
+    raise ValidationError(data)
 
 
 class EmailThread(threading.Thread):
@@ -65,12 +71,13 @@ def send_email(email, code):
         }
     )
 
-# def send_phone_code(phone, code):
-#     account_sid = config('account_sid')
-#     auth_token = config('auth_token')
-#     client = Client(account_sid, auth_token)
-#     client.messages.create(
-#         body=f"Salom do'stim! Sizning tasdiqlash kodingiz: {code}\n",
-#         from_="+99899325242",
-#         to=f"{phone}"
-#     )
+
+def send_phone_code(phone, code):
+    account_sid = config('account_sid')
+    auth_token = config('auth_token')
+    client = Client(account_sid, auth_token)
+    client.messages.create(
+        body=f"Salom do'stim! Sizning tasdiqlash kodingiz: {code}\n",
+        from_="+99899325242",
+        to=f"{phone}"
+    )
